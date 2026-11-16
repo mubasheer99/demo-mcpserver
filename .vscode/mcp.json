@@ -1,0 +1,41 @@
+{
+  "servers": {
+    "gnews-server": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--env-file",
+        ".env",
+        "python",
+        "gnews_server.py"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {}
+    },
+    "firecrawl-server": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--env-file",
+        ".env",
+        "python",
+        "firecrawl_server.py"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {}
+    },
+    "weather-server": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--env-file",
+        ".env",
+        "python",
+        "mcp_weather.py"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {}
+    }
+  },
+  "inputs": []
+}
