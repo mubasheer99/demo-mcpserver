@@ -19,7 +19,7 @@ from mcp_chroma import mcp as chroma_mcp_server
 from gnews_server import mcp as gnews_mcp_server
 from mcp_weather import mcp as weather_mcp_server
 
-SERVER_HOST = "localhost"
+SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 10000
 
 
