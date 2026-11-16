@@ -3,7 +3,6 @@ import contextlib
 import os
 import sys
 
-import ngrok
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,32 +19,17 @@ from gnews_server import mcp as gnews_mcp_server
 from mcp_weather import mcp as weather_mcp_server
 
 SERVER_HOST = "0.0.0.0"
-SERVER_PORT = 10000
-
-
-def connect_ngrok() -> ngrok.Listener:
-    options: dict[str, object] = {"authtoken_from_env": True}
-    domain = os.environ.get("NGROK_DOMAIN", "").strip()
-    if domain:
-        options["domain"] = domain
-
-    forwarder = ngrok.forward(f"{SERVER_HOST}:{SERVER_PORT}", **options)
-    print(f"Available at: {forwarder.url()}")
-    return forwarder
+SERVER_PORT = int(os.environ.get("PORT", "10000"))
 
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     initialize_chroma()
-    forwarder = await asyncio.to_thread(connect_ngrok)
-    try:
-        async with contextlib.AsyncExitStack() as stack:
-            await stack.enter_async_context(gnews_mcp_server.session_manager.run())
-            await stack.enter_async_context(weather_mcp_server.session_manager.run())
-            await stack.enter_async_context(chroma_mcp_server.session_manager.run())
-            yield
-    finally:
-        await forwarder.close()
+    async with contextlib.AsyncExitStack() as stack:
+        await stack.enter_async_context(gnews_mcp_server.session_manager.run())
+        await stack.enter_async_context(weather_mcp_server.session_manager.run())
+        await stack.enter_async_context(chroma_mcp_server.session_manager.run())
+        yield
 
 
 app = FastAPI(lifespan=lifespan)

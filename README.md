@@ -28,9 +28,6 @@ use. Never commit a populated `.env` file.
 ```env
 GNEWS_API_KEY=your-gnews-api-key
 LLAMA_CLOUD_API_KEY=your-llama-cloud-api-key
-NGROK_AUTHTOKEN=your-ngrok-authtoken
-# Optional: set this when using a reserved ngrok domain.
-# NGROK_DOMAIN=your-domain.ngrok-free.app
 # Optional: set this only for an EU LlamaCloud account; leave unset for North America.
 # LLAMA_CLOUD_BASE_URL=https://api.cloud.eu.llamaindex.ai
 PAPERS_WEBSITE_URL=https://huggingface.co/papers
@@ -42,34 +39,32 @@ SCALEKIT_GNEWS_RESOURCE_IDENTIFIER=your-gnews-resource-id
 GNEWS_SCOPE=mcp:tools:search:read
 WEATHER_SCOPE=mcp:tools:weather:read
 CHROMA_SCOPE=mcp:tools:chroma:access
-SCALEKIT_GNEWS_RESOURCE_NAME=https://your-ngrok-domain.ngrok-free.app/gnews/mcp
-SCALEKIT_GNEWS_RESOURCE_METADATA_URL=https://your-ngrok-domain.ngrok-free.app/.well-known/oauth-protected-resource/gnews
+SCALEKIT_GNEWS_RESOURCE_NAME=https://your-service.onrender.com/gnews/mcp
+SCALEKIT_GNEWS_RESOURCE_METADATA_URL=https://your-service.onrender.com/.well-known/oauth-protected-resource/gnews
 SCALEKIT_WEATHER_AUTHORIZATION_SERVER=https://your-environment.scalekit.com/resources/your-weather-resource-id
 SCALEKIT_WEATHER_RESOURCE_IDENTIFIER=your-weather-resource-id
-SCALEKIT_WEATHER_RESOURCE_NAME=https://your-ngrok-domain.ngrok-free.app/weather/mcp
-SCALEKIT_WEATHER_RESOURCE_METADATA_URL=https://your-ngrok-domain.ngrok-free.app/.well-known/oauth-protected-resource/weather
+SCALEKIT_WEATHER_RESOURCE_NAME=https://your-service.onrender.com/weather/mcp
+SCALEKIT_WEATHER_RESOURCE_METADATA_URL=https://your-service.onrender.com/.well-known/oauth-protected-resource/weather
 SCALEKIT_CHROMA_AUTHORIZATION_SERVER=https://your-environment.scalekit.com/resources/your-chroma-resource-id
 SCALEKIT_CHROMA_RESOURCE_IDENTIFIER=your-chroma-resource-id
-SCALEKIT_CHROMA_RESOURCE_NAME=https://your-ngrok-domain.ngrok-free.app/documents/mcp
-SCALEKIT_CHROMA_RESOURCE_METADATA_URL=https://your-ngrok-domain.ngrok-free.app/.well-known/oauth-protected-resource/chroma
+SCALEKIT_CHROMA_RESOURCE_NAME=https://your-service.onrender.com/documents/mcp
+SCALEKIT_CHROMA_RESOURCE_METADATA_URL=https://your-service.onrender.com/.well-known/oauth-protected-resource/chroma
 ```
 
 `GNEWS_API_KEY` is required for GNews. Open-Meteo requires no API key.
-`LLAMA_CLOUD_API_KEY` is required to parse and index PDFs. `NGROK_AUTHTOKEN`
-is required by the combined HTTP server, which starts its tunnel through the
-ngrok Python SDK; a separate ngrok CLI installation is not needed. Set
-`NGROK_DOMAIN` only when using a reserved domain.
+`LLAMA_CLOUD_API_KEY` is required to parse and index PDFs. The server listens
+on the `PORT` environment variable when provided (defaulting to port 10000).
+On Render, use its public service URL in the Scalekit resource configuration.
 
 The HTTP endpoints require Scalekit bearer tokens. Register a protected resource
 for each server with the corresponding scope: GNews uses `GNEWS_SCOPE`, weather
 uses `WEATHER_SCOPE`, and Chroma uses `CHROMA_SCOPE`. Set each resource's
 authorization server, resource identifier, resource name, and metadata URL in
 the matching `SCALEKIT_<SERVER>_*` variables above. The resource identifier is
-also used as the token audience. Replace `your-ngrok-domain.ngrok-free.app`
-with the public HTTPS domain printed by ngrok; these resource URLs must not use
-`localhost`. If the tunnel domain changes, update the URLs and restart the
-server. OAuth metadata endpoints are public; the MCP endpoints themselves are
-protected.
+also used as the token audience. Replace `your-service.onrender.com` with the
+public HTTPS hostname of your Render service; these resource URLs must not use
+`localhost`. OAuth metadata endpoints are public; the MCP endpoints themselves
+are protected.
 
 LlamaCloud API keys are region-specific. For an EU account, set
 `LLAMA_CLOUD_BASE_URL=https://api.cloud.eu.llamaindex.ai`; for North America,
@@ -157,8 +152,9 @@ To serve all three through Streamable HTTP, start:
 uv run --env-file .env python main.py
 ```
 
-The combined server listens at `http://localhost:10000` and starts an ngrok
-tunnel. Its MCP routes are:
+The combined server listens at `http://localhost:10000` by default. On Render,
+use `python main.py` as the start command; the service listens on Render's
+assigned `PORT`. Its MCP routes are:
 
 | Server | Local endpoint | Required scope |
 | --- | --- | --- |
@@ -166,8 +162,8 @@ tunnel. Its MCP routes are:
 | Weather | `http://localhost:10000/weather/mcp` | `WEATHER_SCOPE` |
 | Chroma documents | `http://localhost:10000/documents/mcp` | `CHROMA_SCOPE` |
 
-Use the full route when connecting through ngrok (for example,
-`https://your-domain.ngrok-free.app/weather/mcp`); the tunnel base URL alone is
+Use the full route on Render (for example,
+`https://your-service.onrender.com/weather/mcp`); the service base URL alone is
 not an MCP endpoint. Protected-resource metadata is available at
 `/.well-known/oauth-protected-resource/gnews`,
 `/.well-known/oauth-protected-resource/weather`, and
